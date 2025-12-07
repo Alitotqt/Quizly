@@ -5,9 +5,9 @@ const path = require('path');
 const PORT = process.env.PORT || 8080;
 
 const mimeTypes = {
-  '.html': 'text/html',
-  '.js': 'text/javascript',
-  '.css': 'text/css',
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
   '.json': 'application/json'
 };
 

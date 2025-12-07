@@ -8,17 +8,6 @@ const firebaseConfig = {
   measurementId: "G-JSPBX1Y51B"
 };
 
-let db = null;
-
-if (typeof firebase !== 'undefined') {
-  try {
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    db = firebase.firestore();
-  } catch (error) {
-    console.error('Firebase initialization error:', error);
-  }
-} else {
-  console.error('Firebase SDK not loaded');
+if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
 }
