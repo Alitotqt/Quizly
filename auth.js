@@ -1,4 +1,5 @@
 const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
+const db = typeof firebase !== 'undefined' && typeof firebase.firestore !== 'undefined' ? firebase.firestore() : null;
 let isSignUp = false;
 
 const authForm = document.getElementById('auth-form');
@@ -68,7 +69,13 @@ if (authForm) {
         
         try {
             if (isSignUp) {
-                await auth.createUserWithEmailAndPassword(email, password);
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                if (db && userCredential.user) {
+                    await db.collection('users').doc(userCredential.user.uid).set({
+                        email: email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
             } else {
                 await auth.signInWithEmailAndPassword(email, password);
             }
