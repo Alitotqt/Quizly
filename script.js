@@ -193,20 +193,40 @@ function submitAnswer() {
     const userAnswer = userAnswerInput?.value.trim();
     if (!userAnswer) return;
     
+    const isCorrect = userAnswer.toLowerCase() === shuffledCards[currentCard].answer.trim().toLowerCase();
+    
     userAnswers.push({
         question: shuffledCards[currentCard].question,
         correctAnswer: shuffledCards[currentCard].answer,
         userAnswer: userAnswer,
-        isCorrect: userAnswer.toLowerCase() === shuffledCards[currentCard].answer.trim().toLowerCase()
+        isCorrect: isCorrect
     });
     
-    currentCard++;
+    showFeedback(isCorrect, shuffledCards[currentCard].answer);
+}
+
+function showFeedback(isCorrect, correctAnswer) {
+    const feedback = document.createElement('div');
+    feedback.style.cssText = `margin-top: 1rem; padding: 1rem; border-radius: 0.5rem; text-align: center; font-weight: 600;`;
+    feedback.style.background = isCorrect ? '#d1fae5' : '#fee2e2';
+    feedback.style.color = isCorrect ? '#065f46' : '#991b1b';
+    feedback.innerHTML = isCorrect ? '✓ Correct!' : `✗ Incorrect<br><small style="font-weight: 400;">Correct answer: ${correctAnswer}</small>`;
     
-    if (currentCard < shuffledCards.length) {
-        showQuestion();
-    } else {
-        showResults();
-    }
+    submitAnswerBtn.insertAdjacentElement('afterend', feedback);
+    submitAnswerBtn.disabled = true;
+    userAnswerInput.disabled = true;
+    
+    setTimeout(() => {
+        feedback.remove();
+        submitAnswerBtn.disabled = false;
+        userAnswerInput.disabled = false;
+        currentCard++;
+        if (currentCard < shuffledCards.length) {
+            showQuestion();
+        } else {
+            showResults();
+        }
+    }, 2000);
 }
 
 function showResults() {
