@@ -1,5 +1,5 @@
 const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
-const db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
+const db = typeof firebase !== 'undefined' && typeof firebase.firestore !== 'undefined' ? firebase.firestore() : null;
 let flashcards = [];
 let shuffledCards = [];
 let currentCard = 0;
@@ -86,22 +86,25 @@ function addCard() {
         return;
     }
     
-    if (db) {
-        db.collection('flashcards').add({
-            userId,
-            question,
-            answer,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-            if (questionInput) questionInput.value = '';
-            if (answerInput) answerInput.value = '';
-            questionInput?.focus();
-            loadCards();
-        }).catch(err => {
-            console.error('Error adding card:', err);
-            showError('Failed to add card. Please try again.');
-        });
+    if (!db) {
+        showError('Database not available. Please check Firebase setup.');
+        return;
     }
+    
+    db.collection('flashcards').add({
+        userId,
+        question,
+        answer,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        if (questionInput) questionInput.value = '';
+        if (answerInput) answerInput.value = '';
+        questionInput?.focus();
+        loadCards();
+    }).catch(err => {
+        console.error('Error adding card:', err);
+        showError('Failed to add card: ' + err.message);
+    });
 }
 
 function updateCardList() {
