@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Quizly 💖
 
 A beautiful pink-themed flashcard learning platform built with love.
@@ -19,6 +18,3 @@ Coming soon!
 3. Open `index.html` in browser or deploy to Render
 
 Made for the love of my life ❤️
-=======
-# Quizly
->>>>>>> 92c37da9fdebb970690623f3704359e7f3e23af3
