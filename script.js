@@ -1,9 +1,18 @@
+const auth = firebase.auth();
 let flashcards = [];
 let shuffledCards = [];
 let currentCard = 0;
 let userAnswers = [];
-const userId = 'user_' + (localStorage.getItem('userId') || Date.now());
-if (!localStorage.getItem('userId')) localStorage.setItem('userId', userId);
+let userId = null;
+
+auth.onAuthStateChanged(user => {
+    if (!user) {
+        window.location.href = 'auth.html';
+    } else {
+        userId = user.uid;
+        loadCards();
+    }
+});
 
 const addPage = document.getElementById('add-page');
 const reviewPage = document.getElementById('review-page');
@@ -38,6 +47,7 @@ backHomeBtn.addEventListener('click', () => showPage('add'));
 questionInput.addEventListener('keypress', (e) => e.key === 'Enter' && answerInput.focus());
 answerInput.addEventListener('keypress', (e) => e.key === 'Enter' && addCard());
 userAnswerInput.addEventListener('keypress', (e) => e.key === 'Enter' && submitAnswer());
+document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
 
 function showPage(page) {
     addPage.classList.remove('active');
@@ -183,11 +193,10 @@ function showResults() {
 }
 
 function loadCards() {
+    if (!userId) return;
     db.collection('flashcards').where('userId', '==', userId).orderBy('createdAt').get().then(snapshot => {
         flashcards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         updateCardList();
         startReviewBtn.disabled = flashcards.length === 0;
     });
 }
-
-loadCards();

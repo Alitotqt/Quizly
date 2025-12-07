@@ -1,11 +1,12 @@
-// Replace with your Firebase project credentials from Firebase Console
+// Firebase configuration
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAL1KwfSwbPngKGrkJwxjhXj5zORoyZ2RY",
+  authDomain: "quizly-7ea0b.firebaseapp.com",
+  projectId: "quizly-7ea0b",
+  storageBucket: "quizly-7ea0b.firebasestorage.app",
+  messagingSenderId: "985207245946",
+  appId: "1:985207245946:web:25b0f0e838074437acbfc3",
+  measurementId: "G-JSPBX1Y51B"
 };
 
 // Initialize Firebase
