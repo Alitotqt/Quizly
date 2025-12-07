@@ -1,4 +1,4 @@
-const auth = firebase.auth();
+const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
 let isSignUp = false;
 
 const authForm = document.getElementById('auth-form');
@@ -22,18 +22,47 @@ const showError = (message) => {
     setTimeout(() => errorDiv.remove(), 5000);
 };
 
-auth.onAuthStateChanged(user => {
-    if (user) window.location.href = 'index.html';
-});
+if (auth) {
+    auth.onAuthStateChanged(user => {
+        if (user) window.location.href = 'index.html';
+    });
+}
+
+const generateToken = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+};
+const validateToken = (token) => sessionStorage.getItem('authToken') === token;
 
 if (authForm) {
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const token = authForm.dataset.token;
+        if (!validateToken(token)) {
+            showError('Invalid request. Please refresh the page.');
+            return;
+        }
+        
         const email = emailInput?.value.trim();
         const password = passwordInput?.value;
         
         if (!email || !password) {
             showError('Please enter both email and password.');
+            return;
+        }
+        
+        if (isSignUp && password.length < 6) {
+            showError('Password must be at least 6 characters.');
+            return;
+        }
+        
+        if (!auth) {
+            showError('Authentication service unavailable.');
             return;
         }
         
@@ -44,9 +73,21 @@ if (authForm) {
                 await auth.signInWithEmailAndPassword(email, password);
             }
         } catch (error) {
-            showError(error.message);
+            const msg = error.code === 'auth/invalid-email' ? 'Invalid email address.' :
+                       error.code === 'auth/user-not-found' ? 'No account found with this email.' :
+                       error.code === 'auth/wrong-password' ? 'Incorrect password.' :
+                       error.code === 'auth/email-already-in-use' ? 'Email already registered.' :
+                       error.message;
+            showError(msg);
+            const newToken = generateToken();
+            sessionStorage.setItem('authToken', newToken);
+            authForm.dataset.token = newToken;
         }
     });
+    
+    const token = generateToken();
+    sessionStorage.setItem('authToken', token);
+    authForm.dataset.token = token;
 }
 
 if (toggleAuth) {

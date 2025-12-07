@@ -9,9 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="style.css">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js" crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js" crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <header class="main-header">
@@ -30,11 +30,11 @@
                 <div class="form">
                     <div class="input-wrapper">
                         <label for="question-input">Question</label>
-                        <input type="text" id="question-input" placeholder="What do you want to learn?">
+                        <input type="text" id="question-input" placeholder="What do you want to learn?" maxlength="500">
                     </div>
                     <div class="input-wrapper">
                         <label for="answer-input">Answer</label>
-                        <input type="text" id="answer-input" placeholder="The correct answer">
+                        <input type="text" id="answer-input" placeholder="The correct answer" maxlength="500">
                     </div>
                     <button id="add-btn" class="btn btn-primary">
                         <i class="bi bi-plus-circle"></i>
@@ -74,7 +74,7 @@
                     <p id="question-text" class="question"></p>
                     <div class="input-wrapper">
                         <label for="user-answer">Your Answer</label>
-                        <input type="text" id="user-answer" placeholder="Type your answer..." autofocus>
+                        <input type="text" id="user-answer" placeholder="Type your answer..." maxlength="500" autofocus>
                     </div>
                     <button id="submit-answer-btn" class="btn btn-primary btn-large">
                         Submit Answer

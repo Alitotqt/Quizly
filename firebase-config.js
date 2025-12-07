@@ -1,4 +1,3 @@
-// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAL1KwfSwbPngKGrkJwxjhXj5zORoyZ2RY",
   authDomain: "quizly-7ea0b.firebaseapp.com",
@@ -9,9 +8,17 @@ const firebaseConfig = {
   measurementId: "G-JSPBX1Y51B"
 };
 
-try {
-  firebase.initializeApp(firebaseConfig);
-} catch (error) {
-  console.error('Firebase initialization error:', error);
+let db = null;
+
+if (typeof firebase !== 'undefined') {
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.firestore();
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
+  }
+} else {
+  console.error('Firebase SDK not loaded');
 }
-const db = firebase.firestore();

@@ -1,25 +1,21 @@
-const auth = firebase.auth();
-const db = firebase.firestore();
+const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
+const db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
 let flashcards = [];
 let shuffledCards = [];
 let currentCard = 0;
 let userAnswers = [];
 let userId = null;
 
-const escapeHtml = (text) => {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-};
-
-auth.onAuthStateChanged(user => {
-    if (!user) {
-        window.location.href = 'auth.html';
-    } else {
-        userId = user.uid;
-        loadCards();
-    }
-});
+if (auth) {
+    auth.onAuthStateChanged(user => {
+        if (!user) {
+            window.location.href = 'auth.html';
+        } else {
+            userId = user.uid;
+            loadCards();
+        }
+    });
+}
 
 const addPage = document.getElementById('add-page');
 const reviewPage = document.getElementById('review-page');
@@ -44,6 +40,18 @@ const cancelClear = document.getElementById('cancel-clear');
 const confirmClear = document.getElementById('confirm-clear');
 const logoutBtn = document.getElementById('logout-btn');
 
+const showError = (message) => {
+    const existing = document.querySelector('.error-message');
+    if (existing) existing.remove();
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.style.cssText = 'color: #ef4444; text-align: center; margin: 1rem; padding: 0.75rem; background: #fee; border-radius: 0.5rem;';
+    errorDiv.textContent = message;
+    const target = document.querySelector('.active') || addPage;
+    target?.insertBefore(errorDiv, target.firstChild);
+    setTimeout(() => errorDiv.remove(), 5000);
+};
+
 if (addBtn) addBtn.addEventListener('click', addCard);
 if (clearBtn) clearBtn.addEventListener('click', () => clearModal?.classList.add('active'));
 if (cancelClear) cancelClear.addEventListener('click', () => clearModal?.classList.remove('active'));
@@ -55,7 +63,7 @@ if (backHomeBtn) backHomeBtn.addEventListener('click', () => showPage('add'));
 if (questionInput) questionInput.addEventListener('keypress', (e) => e.key === 'Enter' && answerInput?.focus());
 if (answerInput) answerInput.addEventListener('keypress', (e) => e.key === 'Enter' && addCard());
 if (userAnswerInput) userAnswerInput.addEventListener('keypress', (e) => e.key === 'Enter' && submitAnswer());
-if (logoutBtn) logoutBtn.addEventListener('click', () => auth.signOut());
+if (logoutBtn) logoutBtn.addEventListener('click', () => auth?.signOut());
 
 function showPage(page) {
     addPage.classList.remove('active');
@@ -71,7 +79,14 @@ function addCard() {
     const question = questionInput?.value.trim();
     const answer = answerInput?.value.trim();
     
-    if (question && answer) {
+    if (!question || !answer) return;
+    
+    if (question.length > 500 || answer.length > 500) {
+        showError('Question and answer must be under 500 characters.');
+        return;
+    }
+    
+    if (db) {
         db.collection('flashcards').add({
             userId,
             question,
@@ -84,38 +99,53 @@ function addCard() {
             loadCards();
         }).catch(err => {
             console.error('Error adding card:', err);
-            alert('Failed to add card. Please try again.');
+            showError('Failed to add card. Please try again.');
         });
     }
 }
 
 function updateCardList() {
     if (!cardList) return;
-    cardList.innerHTML = flashcards.map((card, i) => {
+    cardList.innerHTML = '';
+    flashcards.forEach((card, i) => {
         const div = document.createElement('div');
         div.className = 'card-item';
-        div.innerHTML = `
-            <span class="card-number">${i + 1}</span>
-            <div class="card-content-preview">
-                <strong>Q:</strong> ${escapeHtml(card.question)}
-            </div>
-            <button class="delete-btn" data-id="${escapeHtml(card.id)}">×</button>
-        `;
-        div.querySelector('.delete-btn').addEventListener('click', () => deleteCard(card.id));
-        return div.outerHTML;
-    }).join('');
+        
+        const num = document.createElement('span');
+        num.className = 'card-number';
+        num.textContent = i + 1;
+        
+        const content = document.createElement('div');
+        content.className = 'card-content-preview';
+        const strong = document.createElement('strong');
+        strong.textContent = 'Q: ';
+        content.appendChild(strong);
+        content.appendChild(document.createTextNode(card.question));
+        
+        const btn = document.createElement('button');
+        btn.className = 'delete-btn';
+        btn.textContent = '×';
+        btn.addEventListener('click', () => deleteCard(card.id));
+        
+        div.appendChild(num);
+        div.appendChild(content);
+        div.appendChild(btn);
+        cardList.appendChild(div);
+    });
 }
 
 function deleteCard(id) {
+    if (!db) return;
     db.collection('flashcards').doc(id).delete().then(() => {
         loadCards();
     }).catch(err => {
         console.error('Error deleting card:', err);
-        alert('Failed to delete card. Please try again.');
+        showError('Failed to delete card. Please try again.');
     });
 }
 
 function clearAllCards() {
+    if (!db) return;
     db.collection('flashcards').where('userId', '==', userId).get().then(snapshot => {
         const batch = db.batch();
         const maxDocs = Math.min(snapshot.docs.length, 500);
@@ -128,7 +158,7 @@ function clearAllCards() {
         clearModal?.classList.remove('active');
     }).catch(err => {
         console.error('Error clearing cards:', err);
-        alert('Failed to clear cards. Please try again.');
+        showError('Failed to clear cards. Please try again.');
     });
 }
 
@@ -212,24 +242,58 @@ function showResults() {
     if (scoreProgress) scoreProgress.style.strokeDashoffset = offset;
     
     if (resultsList) {
-        resultsList.innerHTML = userAnswers.map((answer, i) => `
-            <div class="result-item ${answer.isCorrect ? 'correct' : 'incorrect'}">
-                <div class="result-header">
-                    <span class="result-number">${i + 1}</span>
-                    <span class="result-status">${answer.isCorrect ? '✓ Correct' : '✗ Incorrect'}</span>
-                </div>
-                <div class="result-content">
-                    <p><strong>Question:</strong> ${escapeHtml(answer.question)}</p>
-                    <p><strong>Your Answer:</strong> ${escapeHtml(answer.userAnswer)}</p>
-                    ${!answer.isCorrect ? `<p><strong>Correct Answer:</strong> ${escapeHtml(answer.correctAnswer)}</p>` : ''}
-                </div>
-            </div>
-        `).join('');
+        resultsList.innerHTML = '';
+        userAnswers.forEach((answer, i) => {
+            const item = document.createElement('div');
+            item.className = `result-item ${answer.isCorrect ? 'correct' : 'incorrect'}`;
+            
+            const header = document.createElement('div');
+            header.className = 'result-header';
+            const num = document.createElement('span');
+            num.className = 'result-number';
+            num.textContent = i + 1;
+            const status = document.createElement('span');
+            status.className = 'result-status';
+            status.textContent = answer.isCorrect ? '✓ Correct' : '✗ Incorrect';
+            header.appendChild(num);
+            header.appendChild(status);
+            
+            const content = document.createElement('div');
+            content.className = 'result-content';
+            
+            const q = document.createElement('p');
+            const qStrong = document.createElement('strong');
+            qStrong.textContent = 'Question: ';
+            q.appendChild(qStrong);
+            q.appendChild(document.createTextNode(answer.question));
+            
+            const a = document.createElement('p');
+            const aStrong = document.createElement('strong');
+            aStrong.textContent = 'Your Answer: ';
+            a.appendChild(aStrong);
+            a.appendChild(document.createTextNode(answer.userAnswer));
+            
+            content.appendChild(q);
+            content.appendChild(a);
+            
+            if (!answer.isCorrect) {
+                const c = document.createElement('p');
+                const cStrong = document.createElement('strong');
+                cStrong.textContent = 'Correct Answer: ';
+                c.appendChild(cStrong);
+                c.appendChild(document.createTextNode(answer.correctAnswer));
+                content.appendChild(c);
+            }
+            
+            item.appendChild(header);
+            item.appendChild(content);
+            resultsList.appendChild(item);
+        });
     }
 }
 
 function loadCards() {
-    if (!userId) return;
+    if (!db || !userId) return;
     db.collection('flashcards').where('userId', '==', userId).orderBy('createdAt').get().then(snapshot => {
         flashcards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         updateCardList();
