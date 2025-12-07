@@ -63,7 +63,16 @@ if (backHomeBtn) backHomeBtn.addEventListener('click', () => showPage('add'));
 if (questionInput) questionInput.addEventListener('keypress', (e) => e.key === 'Enter' && answerInput?.focus());
 if (answerInput) answerInput.addEventListener('keypress', (e) => e.key === 'Enter' && addCard());
 if (userAnswerInput) userAnswerInput.addEventListener('keypress', (e) => e.key === 'Enter' && submitAnswer());
-if (logoutBtn) logoutBtn.addEventListener('click', () => auth?.signOut());
+if (logoutBtn) logoutBtn.addEventListener('click', () => {
+    if (auth) {
+        auth.signOut().then(() => {
+            window.location.href = 'auth.html';
+        }).catch(err => {
+            console.error('Logout error:', err);
+            showError('Failed to logout. Please try again.');
+        });
+    }
+});
 
 function showPage(page) {
     addPage.classList.remove('active');
@@ -296,13 +305,20 @@ function showResults() {
 }
 
 function loadCards() {
-    if (!db || !userId) return;
+    if (!db || !userId) {
+        console.log('DB or userId not available:', { db: !!db, userId });
+        return;
+    }
     db.collection('flashcards').where('userId', '==', userId).orderBy('createdAt').get().then(snapshot => {
         flashcards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         updateCardList();
         if (startReviewBtn) startReviewBtn.disabled = flashcards.length === 0;
     }).catch(err => {
         console.error('Error loading cards:', err);
-        if (cardList) cardList.innerHTML = '<p style="color: #ef4444; text-align: center;">Failed to load cards. Please refresh the page.</p>';
+        if (err.code === 'failed-precondition' || err.message.includes('index')) {
+            showError('Setting up database. Please wait a moment and refresh.');
+        } else {
+            showError('Failed to load cards: ' + err.message);
+        }
     });
 }
