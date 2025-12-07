@@ -9,6 +9,9 @@ const firebaseConfig = {
   measurementId: "G-JSPBX1Y51B"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+try {
+  firebase.initializeApp(firebaseConfig);
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+}
 const db = firebase.firestore();
