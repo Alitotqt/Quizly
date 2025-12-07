@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quizly - Smart Flashcard Learning</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <header class="main-header">
+        <h1>Quizly</h1>
+        <p class="tagline">Smart flashcard learning platform</p>
+    </header>
+    
+    <div class="app">
+        <!-- Add Cards Page -->
+        <div id="add-page" class="page active">
+            <div class="card">
+                <h2>Create Flashcards</h2>
+                <div class="form">
+                    <div class="input-wrapper">
+                        <label for="question-input">Question</label>
+                        <input type="text" id="question-input" placeholder="What do you want to learn?">
+                    </div>
+                    <div class="input-wrapper">
+                        <label for="answer-input">Answer</label>
+                        <input type="text" id="answer-input" placeholder="The correct answer">
+                    </div>
+                    <button id="add-btn" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i>
+                        Add Card
+                    </button>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div class="card-list" id="card-list"></div>
+            </div>
+            
+            <div class="actions">
+                <button id="start-review-btn" class="btn btn-primary btn-large" disabled>
+                    <i class="bi bi-play-circle-fill"></i>
+                    Start Review
+                </button>
+                <button id="clear-btn" class="btn btn-secondary">
+                    <i class="bi bi-trash"></i>
+                    Clear All
+                </button>
+            </div>
+        </div>
+        
+        <!-- Review Page -->
+        <div id="review-page" class="page">
+            <div class="review-header">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="counter" id="card-counter">0 / 0</div>
+            </div>
+            
+            <div class="review-container">
+                <div class="card review-card">
+                    <div class="badge">Question</div>
+                    <p id="question-text" class="question"></p>
+                    <div class="input-wrapper">
+                        <label for="user-answer">Your Answer</label>
+                        <input type="text" id="user-answer" placeholder="Type your answer..." autofocus>
+                    </div>
+                    <button id="submit-answer-btn" class="btn btn-primary btn-large">
+                        Submit Answer
+                        <i class="bi bi-arrow-right-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Page -->
+        <div id="results-page" class="page">
+            <div class="card results-card">
+                <h2 id="result-title">Review Complete!</h2>
+                <p id="result-message" class="result-message"></p>
+                <div class="score-section">
+                    <div class="score-circle">
+                        <svg width="180" height="180" viewBox="0 0 180 180">
+                            <circle cx="90" cy="90" r="80" fill="none" stroke="#334155" stroke-width="12"/>
+                            <circle id="score-progress" cx="90" cy="90" r="80" fill="none" stroke="url(#scoreGradient)" stroke-width="12" stroke-linecap="round" stroke-dasharray="502.65" stroke-dashoffset="502.65" transform="rotate(-90 90 90)"/>
+                            <defs><linearGradient id="scoreGradient"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
+                        </svg>
+                        <div class="score-content">
+                            <span id="score-text" class="score-percent">0%</span>
+                            <span id="score-message" class="score-label">0 / 0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div class="results-list" id="results-list"></div>
+                
+                <div class="actions">
+                    <button id="retry-btn" class="btn btn-primary">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        Retry Quiz
+                    </button>
+                    <button id="back-home-btn" class="btn btn-secondary">
+                        <i class="bi bi-house-fill"></i>
+                        Add More Cards
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="main-footer">
+        <p>Made for the love of my life <i class="bi bi-heart-fill"></i></p>
+    </footer>
+    
+    <div class="modal-overlay" id="clear-modal">
+        <div class="modal">
+            <div class="modal-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <h3>Clear All Cards?</h3>
+            <p>This will permanently delete all your flashcards. This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancel-clear">Cancel</button>
+                <button class="btn btn-primary" id="confirm-clear">Delete All</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
